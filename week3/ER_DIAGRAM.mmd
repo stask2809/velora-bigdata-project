@@ -1,0 +1,12 @@
+erDiagram
+  CUSTOMERS ||--o{ ORDERS : places
+  CUSTOMERS ||--o| WISHLISTS : owns
+  CATEGORIES ||--o{ PRODUCTS : groups
+  COLLECTIONS ||--o{ PRODUCTS : contains
+  PRODUCTS ||--o{ VARIANTS : has
+  WISHLISTS ||--o{ WISHLIST_ITEMS : contains
+  PRODUCTS ||--o{ WISHLIST_ITEMS : saved_in
+  ORDERS ||--o{ ORDER_ITEMS : contains
+  VARIANTS ||--o{ ORDER_ITEMS : ordered_as
+  COUPONS ||--o{ ORDERS : discounts
+  ORDERS ||--o| PAYMENTS : paid_by
