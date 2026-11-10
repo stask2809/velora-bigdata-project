@@ -168,6 +168,45 @@ app.post('/api/orders',wrap(async(req,res)=>{
     client.release();
   }
 }));
+// ---------- Order history ----------
+app.get('/api/orders', wrap(async (req, res) => {
+  const email = String(req.query.email || '').trim().toLowerCase();
+
+  if (!email) {
+    return res.status(400).json({ error: 'Customer email is required' });
+  }
+
+  const { rows } = await pool.query(
+    `SELECT
+        o.order_id,
+        o.status,
+        o.total,
+        o.created_at,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'product', p.name,
+              'quantity', oi.quantity,
+              'unit_price', oi.unit_price,
+              'size', v.size,
+              'color', v.color
+            )
+          ) FILTER (WHERE oi.order_id IS NOT NULL),
+          '[]'::json
+        ) AS items
+     FROM orders o
+     JOIN customers c ON c.customer_id = o.customer_id
+     LEFT JOIN order_items oi ON oi.order_id = o.order_id
+     LEFT JOIN variants v ON v.variant_id = oi.variant_id
+     LEFT JOIN products p ON p.product_id = v.product_id
+     WHERE LOWER(c.email) = $1
+     GROUP BY o.order_id
+     ORDER BY o.created_at DESC`,
+    [email]
+  );
+
+  res.json(rows);
+}));
 
 // 7. Customer order history.
 app.get('/api/customers/:id/orders',wrap(async(req,res)=>{
